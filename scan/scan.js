@@ -1,170 +1,113 @@
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const result = document.getElementById('result');
-const captureBtn = document.getElementById('captureBtn');
-const startCameraBtn = document.getElementById('startCameraBtn');
-const stopCameraBtn = document.getElementById('stopCameraBtn');
-const debugWebcam = document.getElementById('debugWebcam');
-const debugModel = document.getElementById('debugModel');
-const debugScan = document.getElementById('debugScan');
+// the link to your model provided by Teachable Machine export panel
+const URL = "https://teachablemachine.withgoogle.com/models/Toy92tVlh/";
 
-let stream = null;
-let model = null;
-let maxPredictions = 0;
-let modelLoaded = false;
+let model, webcam, labelContainer, maxPredictions;
+let running = false;
+let loopId = null;
+let scanBtn;
+let liveFeedId = null;
 
-function updateDebugPanel() {
-  debugWebcam.textContent = stream ? 'ON' : 'OFF';
-  debugModel.textContent = modelLoaded ? 'LOADED' : 'NOT LOADED';
-  debugScan.textContent = !captureBtn.disabled ? 'ENABLED' : 'DISABLED';
-}
-
-// Update debug panel on page load
-updateDebugPanel();
-
-// Start the webcam
-async function startWebcam() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { 
-        width: 320, 
-        height: 240,
-        facingMode: 'environment' // Use back camera if available
-      } 
-    });
-    video.srcObject = stream;
-    video.classList.remove('hidden');
-    stopCameraBtn.classList.remove('hidden');
-    startCameraBtn.classList.add('hidden');
-    result.textContent = '';
-    canvas.classList.add('hidden');
-    if (modelLoaded) {
-      captureBtn.disabled = false;
-    }
-    updateDebugPanel();
-    console.log("Webcam started!");
-  } catch (error) {
-    console.error("Error accessing webcam:", error);
-    alert("⚠️ Camera access denied or not available.");
-    updateDebugPanel();
-  }
-}
-
-// Stop the webcam
-function stopWebcam() {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-  }
-  video.srcObject = null;
-  video.classList.add('hidden');
-  stopCameraBtn.classList.add('hidden');
-  startCameraBtn.classList.remove('hidden');
-  captureBtn.disabled = true;
-  canvas.classList.add('hidden');
-  result.textContent = '';
-  updateDebugPanel();
-  console.log("Webcam stopped!");
-}
-
-// Load Teachable Machine model
-async function loadModel() {
-  const modelURL = "teachablemachine/model.json";
-  const metadataURL = "teachablemachine/metadata.json";
-  try {
-    console.log("[AI] Starting to load model...");
-    result.textContent = "Loading AI model...";
-    captureBtn.disabled = true;
-    updateDebugPanel();
-    console.log("[AI] Loading model from:", modelURL);
-    console.log("[AI] Loading metadata from:", metadataURL);
-    model = await tmImage.load(modelURL, metadataURL);
-    console.log("[AI] Model loaded:", model);
-    maxPredictions = model.getTotalClasses();
-    modelLoaded = true;
-    result.textContent = "AI model loaded!";
-    // Only enable scan if webcam is running
-    if (stream) {
-      captureBtn.disabled = false;
-    }
-    updateDebugPanel();
-    console.log("[AI] Teachable Machine model loaded! maxPredictions:", maxPredictions);
-  } catch (err) {
-    result.textContent = "⚠️ Could not load AI model.";
-    captureBtn.disabled = true;
-    updateDebugPanel();
-    alert("⚠️ Could not load AI model. Please check your connection and try again.");
-    console.error("[AI] Error loading AI model:", err);
-  }
-}
-
-// Predict using Teachable Machine
-async function predictWithAI() {
-  if (!modelLoaded) {
-    result.textContent = "AI model not loaded yet. Please wait...";
-    result.className = "text-xl font-semibold text-yellow-600";
-    return;
-  }
-  if (!model) {
-    result.textContent = "AI model not loaded.";
-    result.className = "text-xl font-semibold text-red-600";
-    return;
-  }
-  // Draw current video frame to canvas
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  // Run prediction
-  const prediction = await model.predict(canvas);
-  // Find the highest probability
-  let best = { className: '', probability: 0 };
-  for (let i = 0; i < prediction.length; i++) {
-    if (prediction[i].probability > best.probability) {
-      best = prediction[i];
-    }
-  }
-  // Show result
-  if (best.className.toLowerCase() === 'plastic') {
-    result.textContent = `✅ PLASTIC (${(best.probability * 100).toFixed(1)}% confidence)`;
-    result.className = "text-xl font-semibold text-green-600";
-  } else if (best.className.toLowerCase() === 'non-plastic') {
-    result.textContent = `❌ NON-PLASTIC (${(best.probability * 100).toFixed(1)}% confidence)`;
-    result.className = "text-xl font-semibold text-red-600";
-  } else {
-    result.textContent = `⚠️ Unknown (${(best.probability * 100).toFixed(1)}% confidence)`;
-    result.className = "text-xl font-semibold text-yellow-600";
-  }
-}
-
-// Capture and analyze image
-captureBtn.addEventListener('click', async () => {
-  if (!stream) return;
-  if (!modelLoaded) {
-    result.textContent = "AI model not loaded yet. Please wait...";
-    result.className = "text-xl font-semibold text-yellow-600";
-    updateDebugPanel();
-    return;
-  }
-  canvas.classList.remove("hidden");
-  await predictWithAI();
-  updateDebugPanel();
+// Add event listeners for Start/Stop buttons after DOM loads
+window.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    scanBtn = document.getElementById('scan-btn');
+    startBtn.addEventListener('click', startWebcam);
+    stopBtn.addEventListener('click', stopWebcam);
+    scanBtn.addEventListener('click', scanPlastic);
 });
 
-startCameraBtn.addEventListener('click', startWebcam);
-stopCameraBtn.addEventListener('click', stopWebcam);
-
-// Load the model on page load
-function waitForTmImageAndLoadModel() {
-  if (typeof tmImage !== 'undefined') {
-    loadModel();
-  } else {
-    setTimeout(waitForTmImageAndLoadModel, 100);
-  }
+async function startWebcam() {
+    if (running) return;
+    running = true;
+    document.getElementById('start-btn').disabled = true;
+    document.getElementById('stop-btn').disabled = false;
+    scanBtn.disabled = false;
+    await init();
+    startLiveFeed();
 }
 
-window.addEventListener('DOMContentLoaded', waitForTmImageAndLoadModel);
+function startLiveFeed() {
+    function updateFrame() {
+        if (!running || !webcam) return;
+        webcam.update();
+        liveFeedId = requestAnimationFrame(updateFrame);
+    }
+    updateFrame();
+}
 
-// Add some helpful tips
-console.log("🧠 Plastic Detector Tips:");
-console.log("- Point camera at clear, well-lit objects");
-console.log("- Avoid shadows and reflections");
-console.log("- For best results, use natural lighting");
+async function stopWebcam() {
+    if (!running) return;
+    running = false;
+    document.getElementById('start-btn').disabled = false;
+    document.getElementById('stop-btn').disabled = true;
+    scanBtn.disabled = true;
+    if (liveFeedId) {
+        cancelAnimationFrame(liveFeedId);
+        liveFeedId = null;
+    }
+    if (webcam) {
+        await webcam.stop();
+        if (webcam.canvas && webcam.canvas.parentNode) {
+            webcam.canvas.parentNode.removeChild(webcam.canvas);
+        }
+    }
+    // Clear results
+    if (labelContainer) {
+        labelContainer.innerHTML = '';
+    }
+}
+
+// Load the image model and setup the webcam
+async function init() {
+    const modelURL = URL + "model.json";
+    const metadataURL = URL + "metadata.json";
+
+    // load the model and metadata
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    const flip = true; // whether to flip the webcam
+    webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+    try {
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        webcam.update(); // Show the current frame on canvas
+
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = '';
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+            const div = document.createElement("div");
+            div.className = "text-lg font-mono px-4 py-2 rounded w-full text-center bg-gray-50 border";
+            labelContainer.appendChild(div);
+        }
+    } catch (err) {
+        alert("Could not access webcam: " + err.message);
+        console.error("Webcam setup/play error:", err);
+        running = false;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('stop-btn').disabled = true;
+        scanBtn.disabled = true;
+    }
+}
+
+// Remove loop and live prediction logic
+
+async function scanPlastic() {
+    if (!running || !webcam || !model) return;
+    // webcam.update(); // Not needed, live feed is running
+    await predict();
+}
+
+// run the webcam image through the image model
+async function predict() {
+    // predict can take in an image, video or canvas html element
+    const prediction = await model.predict(webcam.canvas);
+    for (let i = 0; i < maxPredictions; i++) {
+        const percent = (prediction[i].probability * 100).toFixed(1) + '%';
+        const classPrediction = `<span class="font-bold">${prediction[i].className}:</span> <span class="text-blue-600">${percent}</span>`;
+        labelContainer.childNodes[i].innerHTML = classPrediction;
+    }
+}
