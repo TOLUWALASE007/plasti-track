@@ -69,6 +69,7 @@ PlastiTrack is a web-based logistics application that simplifies plastic waste r
 * Pickup status updates must be synced manually via the backend
 * AI model accuracy depends on lighting and camera quality
 * Admin dashboard is minimal—future versions will include charts and real-time stats
+* No financial exchange system — payments are made physically. 
 
 ---
 
