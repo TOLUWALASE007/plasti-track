@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard - PlastiTrack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- 🟢 Header -->
+  <header class="bg-green-600 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">👋 Welcome, <span id="userName">User</span></h1>
+    <div>
+      <a href="../scan/scan.html" class="bg-white text-green-600 px-4 py-1 rounded hover:bg-green-200 mr-2">Scan Plastic</a>
+      <button onclick="logout()" class="bg-white text-green-600 px-4 py-1 rounded hover:bg-gray-200">Logout</button>
+    </div>
+  </header>
+
+  <!-- 📦 Dashboard Container -->
+  <main class="p-6 max-w-4xl mx-auto space-y-10">
+
+    <!-- 📊 Stats -->
+    <section class="grid grid-cols-2 gap-4">
+      <div class="bg-white shadow-md p-4 rounded">
+        <h3 class="text-lg font-semibold text-gray-700">♻️ Total Recycled</h3>
+        <p class="text-3xl font-bold mt-2" id="totalKg">0 kg</p>
+      </div>
+      <div class="bg-white shadow-md p-4 rounded">
+        <h3 class="text-lg font-semibold text-gray-700">💵 Total Earned</h3>
+        <p class="text-3xl font-bold mt-2 text-green-700" id="totalEarnings">₦0</p>
+      </div>
+    </section>
+
+    <!-- 🗓️ Pickup Form -->
+    <section class="bg-white p-6 rounded shadow-md">
+      <h2 class="text-xl font-bold mb-4 text-green-700">📅 Schedule a Pickup</h2>
+      <form id="pickupForm" class="space-y-4">
+        <input type="text" id="address" placeholder="Pickup address" required class="w-full p-2 border rounded"/>
+        <input type="text" id="contact" placeholder="Contact number" required class="w-full p-2 border rounded"/>
+        <input type="text" id="note" placeholder="Note to collector (optional)" class="w-full p-2 border rounded"/>
+        <input type="number" id="weight" placeholder="Estimated weight (kg)" required class="w-full p-2 border rounded" min="1"/>
+        <input type="date" id="date" required class="w-full p-2 border rounded"/>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Schedule Pickup</button>
+      </form>
+    </section>
+
+    <!-- 📜 Pickup History -->
+    <section class="bg-white p-6 rounded shadow-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-green-700">📜 Pickup History</h2>
+        <button onclick="fetchUserPickups()" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm border-0">
+          🔄 Refresh
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table id="pickupTable" class="w-full text-sm border-collapse">
+          <tr class="border-b font-semibold bg-gray-100">
+            <th class="p-2 border">Date</th>
+            <th class="p-2 border">Address</th>
+            <th class="p-2 border">Weight (kg)</th>
+            <th class="p-2 border">Status</th>
+            <th class="p-2 border">Action</th>
+          </tr>
+          <!-- Pickup rows will be rendered by JS -->
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="schedule.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard - PlastiTrack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- 🟢 Header -->
+  <header class="bg-green-700 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">🛠 Admin Dashboard</h1>
+    <div>
+      <a href="../scan/scan.html" class="bg-white text-green-700 px-4 py-1 rounded hover:bg-green-200 mr-2">Scan Plastic</a>
+      <button onclick="logout()" class="bg-white text-green-700 px-4 py-1 rounded hover:bg-gray-200">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="p-6 max-w-4xl mx-auto space-y-8">
+    <div class="space-y-6">
+      <div class="p-4 bg-white rounded shadow">
+        <h3 class="text-lg font-semibold">👥 Total Users</h3>
+        <p id="totalUsers" class="text-2xl font-bold text-blue-700">Loading...</p>
+      </div>
+      <div class="p-4 bg-white rounded shadow">
+        <h3 class="text-lg font-semibold">📦 Total Pickups</h3>
+        <p id="totalPickups" class="text-2xl font-bold text-green-700">Loading...</p>
+      </div>
+      <div class="p-4 bg-white rounded shadow">
+        <h3 class="text-lg font-semibold">📌 Pickup Status Breakdown</h3>
+        <ul class="space-y-2">
+          <li>Pending: <span id="pendingCount" class="font-bold">Loading...</span></li>
+          <li>In Transit: <span id="inTransitCount" class="font-bold">Loading...</span></li>
+          <li>Collected: <span id="collectedCount" class="font-bold">Loading...</span></li>
+        </ul>
+      </div>
+      </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

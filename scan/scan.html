@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plastic Detector - PlastiTrack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+  <h2 class="text-2xl font-bold text-center my-4">🧠 AI Plastic Detector</h2>
+
+  <div class="flex flex-col items-center space-y-4 bg-white p-6 rounded shadow">
+    <button id="startCameraBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">▶️ Start Camera</button>
+    <button id="stopCameraBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 hidden">⏹️ Stop Camera</button>
+    <video id="video" width="320" height="240" autoplay class="border rounded hidden"></video>
+    
+    <button id="captureBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" disabled>
+      🔍 Scan Item
+    </button>
+
+    <canvas id="canvas" width="320" height="240" class="hidden border rounded"></canvas>
+
+    <p id="result" class="text-xl font-semibold text-green-600"></p>
+    <div id="debugPanel" class="mt-4 p-2 bg-gray-100 border rounded text-xs text-gray-700 w-full max-w-md">
+      <strong>Debug Info:</strong>
+      <div>Webcam: <span id="debugWebcam">unknown</span></div>
+      <div>Model: <span id="debugModel">unknown</span></div>
+      <div>Scan Button: <span id="debugScan">unknown</span></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@1.0.2/dist/teachablemachine-image.min.js"></script>
+  <script src="scan.js"></script>
+</body>
+</html>
