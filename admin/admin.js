@@ -15,14 +15,17 @@ async function loadAdminStats() {
     const users = Array.isArray(usersData) ? usersData : usersData.data || [];
     const pickups = Array.isArray(pickupsData) ? pickupsData : pickupsData.data || [];
 
+    // Only count pickups with a valid pickupid
+    const validPickups = pickups.filter(p => p.pickupid || p.pickupId || p.id);
+
     // Total counts
     document.getElementById("totalUsers").textContent = users.length;
-    document.getElementById("totalPickups").textContent = pickups.length;
+    document.getElementById("totalPickups").textContent = validPickups.length;
 
-    // Count by status
-    const pending = pickups.filter(p => p.status === "Pending").length;
-    const inTransit = pickups.filter(p => p.status === "In Transit").length;
-    const collected = pickups.filter(p => p.status === "Collected").length;
+    // Count by status (only for valid pickups)
+    const pending = validPickups.filter(p => p.status === "Pending").length;
+    const inTransit = validPickups.filter(p => p.status === "In Transit").length;
+    const collected = validPickups.filter(p => p.status === "Collected").length;
 
     document.getElementById("pendingCount").textContent = pending;
     document.getElementById("inTransitCount").textContent = inTransit;
