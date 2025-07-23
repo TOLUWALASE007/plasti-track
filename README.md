@@ -42,7 +42,7 @@ PlastiTrack is a web-based logistics application that simplifies plastic waste r
 
 1. Clone the Repository   
    bash 
-   git clone https://github.com/yourusername/plastitrack.git
+   git clone [https://github.com/yourusername/plastitrack.git](https://github.com/TOLUWALASE007/plasti-track)
    cd plastitrack
  
 
